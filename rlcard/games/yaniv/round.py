@@ -1,9 +1,7 @@
 from rlcard.core import Card
 import rlcard.games.yaniv.utils as utils
 from rlcard.games.yaniv.player import YanivPlayer
-from itertools import groupby
-from operator import itemgetter
-
+from itertools import groupby, combinations
 
 class YanivRound(object):
     def __init__(self, dealer, num_players, np_random):
@@ -52,16 +50,29 @@ class YanivRound(object):
         rankKey = lambda c: utils.rank2int[c.rank]
         # groups of rank
         for rank, group in groupby(sorted(hand, key=rankKey), key=rankKey):
-            cards = sorted(list(group), key=suitKey)
+            group = sorted(list(group), key=suitKey)
 
-            if len(cards) == 1:
+            if len(group) == 1:
                 continue
 
-            if len(cards) == 2:
-                legal_actions.append(utils.cardlist_to_action(cards))
+            if len(group) >= 2:
+                # combinations of 2 cards
+                for combo in combinations(group, 2):
+                    legal_actions.append(utils.cardlist_to_action(combo))
 
-            if len(cards) == 3:
-                pass
+            if len(group) >= 3:
+                for combo in combinations(group, 3):
+                    for c in combo:
+                        seq = [s for s in combo if c != s]
+                        seq.insert(1, c)
+                        legal_actions.append(utils.cardlist_to_action(seq))
+
+            if len(group) == 4:
+                for combo in combinations(group, 2):
+                    outer = list(combo)
+                    inner = [c for c in group if c not in outer]
+                    outer[1:1] = inner
+                    legal_actions.append(utils.cardlist_to_action(outer))
 
         # straights
         for suit, group in groupby(sorted(hand, key=suitKey), key=suitKey):
