@@ -1,10 +1,14 @@
 from rlcard.core import Card
 import rlcard.games.yaniv.utils as utils
+
 from rlcard.games.yaniv.player import YanivPlayer
+from rlcard.games.yaniv.dealer import YanivDealer
+
 from itertools import groupby, combinations
 
+
 class YanivRound(object):
-    def __init__(self, dealer, num_players, np_random):
+    def __init__(self, dealer: YanivDealer, num_players, np_random):
         """Initialize the round class
 
         Args:
@@ -15,10 +19,16 @@ class YanivRound(object):
         self.dealer = dealer
         self.current_player = 0
         self.num_players = num_players
-        self.played_cards = []  # List[List[Card]]
+        self.discard_pile = []  # List[List[Card]]
+
+        self.known_cards = [[] for x in range(num_players)]
 
         # discard first
         self.discarding = True
+
+        self.is_over = False
+        self.winner = None
+        self.scores = None
 
     def proceed_round(self, players, action):
         """Call other Classes's functions to keep one round running
@@ -139,3 +149,51 @@ class YanivRound(object):
         players[self.current_player].hand.append(card)
 
         # TODO deal with itsbah
+
+    def _perform_pickup_up_top_card_action(self, players):
+        card = self.discard_pile[-1].pop()
+
+        players[self.current_player].hand.append(card)
+        self.known_cards[self.current_player].append(card)
+
+    def _perform_pickup_up_bottom_card_action(self, players):
+        card = self.discard_pile[-1].pop(0)
+
+        players[self.current_player].hand.append(card)
+        self.known_cards[self.current_player].append(card)
+
+    def _perform_yaniv_action(self, players):
+        winner = None
+        scores = []
+        for player in players:
+            scores.append(utils.get_hand_score(player.hand))
+
+        # assaf
+        if any(
+            (
+                score <= scores[self.current_player]
+                for i, score in enumerate(scores)
+                if i != self.current_player
+            )
+        ):
+            scores[self.current_player] += utils.ASSAF_PENALTY
+
+            # the winner is the player with the lowest score closest
+            # to the right of the current player
+            minScore = min(scores)
+            winnerIndex = self.current_player
+            while scores[winnerIndex] != minScore:
+                winnerIndex -= 1
+                if winnerIndex < 0:
+                    winnerIndex = len(scores) - 1
+
+            scores[winnerIndex] = 0
+            winner = winnerIndex
+        else:
+            winner = self.current_player
+            scores[self.current_player] = 0
+        
+        self.winner = winner
+        self.scores = scores
+        self.is_over = True
+

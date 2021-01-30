@@ -156,6 +156,54 @@ class TestYanivRound(unittest.TestCase):
         actions = rnd.get_legal_actions([player], 0)
         self.assertEqual(utils.pickup_actions, actions)
 
+    def test_yaniv_successful_action(self):
+        players = [
+            YanivPlayer(0, None),
+            YanivPlayer(1, None),
+            YanivPlayer(2, None),
+        ]
+        players[0].hand = [
+            Card("D", "T"),
+        ]
+        players[1].hand = [
+            Card("H", "2"),
+        ]
+        players[2].hand = [
+            Card("S", "1"),
+        ]
+
+        rnd = YanivRound(None, 3, None)
+        rnd.current_player = 2
+        rnd._perform_yaniv_action(players)
+
+        self.assertEqual(rnd.is_over, True)
+        self.assertEqual(rnd.winner, 2)
+        self.assertEqual(rnd.scores, [10, 2, 0])
+
+    def test_yaniv_assaf_action(self):
+        players = [
+            YanivPlayer(0, None),
+            YanivPlayer(1, None),
+            YanivPlayer(2, None),
+        ]
+        players[0].hand = [
+            Card("S", "1"),
+        ]
+        players[1].hand = [
+            Card("H", "1"),
+        ]
+        players[2].hand = [
+            Card("D", "1"),
+        ]
+
+        rnd = YanivRound(None, 3, None)
+        rnd.current_player = 2
+        rnd._perform_yaniv_action(players)
+
+        self.assertEqual(rnd.is_over, True)
+        self.assertEqual(rnd.winner, 1)
+        self.assertEqual(rnd.scores, [1, 0, 31])
+
 
 if __name__ == "__main__":
     unittest.main()

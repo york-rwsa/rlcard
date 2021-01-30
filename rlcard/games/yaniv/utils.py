@@ -5,6 +5,8 @@ from collections import OrderedDict
 
 import rlcard
 
+ASSAF_PENALTY = 30
+
 ROOT_PATH = rlcard.__path__[0]
 
 pickup_actions = ["pickup_top_discard", "pickup_bottom_discard", "draw_card"]
