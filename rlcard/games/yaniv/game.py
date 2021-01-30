@@ -9,12 +9,13 @@ from rlcard.games.yaniv import utils
 
 class YanivGame(object):
 
-    def __init__(self, allow_step_back=False):
+    def __init__(self, num_players=2, allow_step_back=False):
         self.allow_step_back = allow_step_back
         self.np_random = np.random.RandomState()
-        self.num_players = 2
+        self.num_players = num_players
         self.payoffs = [0 for _ in range(self.num_players)]
-
+        self.actions = []
+        
     def init_game(self):
         ''' Initialize players and state
 
@@ -68,6 +69,7 @@ class YanivGame(object):
             his_players = deepcopy(self.players)
             self.history.append((his_dealer, his_players, his_round))
 
+        self.actions.append(action)
         self.round.proceed_round(self.players, action)
         player_id = self.round.current_player
         state = self.get_state(player_id)
