@@ -1,14 +1,12 @@
 
-from rlcard.utils import init_54_deck
-from rlcard.core import Card
+from rlcard.games.yaniv.utils import init_deck
+from rlcard.games.yaniv.card import YanivCard
 from typing import List
 
 class YanivDealer(object):
-    ''' Initialize a uno dealer class
-    '''
     def __init__(self, np_random):
         self.np_random = np_random
-        self.deck = init_54_deck() # type: List[Card]
+        self.deck = init_deck() # type: List[YanivCard]
         self.shuffle()
 
     def shuffle(self):
@@ -16,7 +14,7 @@ class YanivDealer(object):
         '''
         self.np_random.shuffle(self.deck)
 
-    def deal_card(self) -> Card:
+    def draw_card(self) -> YanivCard:
         ''' Deal one card from the deck
 
         Returns:

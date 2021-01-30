@@ -37,10 +37,32 @@ class YanivRound(object):
             player (object): YanivPlayer
             action (str): string of legal action
         """
-        if action == "draw":
-            self._perform_draw_action(players)
-            return None
-        player = players[self.current_player]
+        if not self.discarding:
+            if action == utils.DRAW_CARD_ACTION:
+                self._perform_draw_action(players)
+                self._next_player()
+                return None
+
+            if action == utils.PICKUP_TOP_DISCARD_ACTION:
+                self._perform_pickup_up_top_card_action(players)
+                self._next_player()
+                return None
+
+            if action == utils.PICKUP_BOTTOM_DISCARD_ACTION:
+                self._perform_pickup_up_bottom_card_action(players)
+                self._next_player()
+                return None
+        else:
+            if action == utils.YANIV_ACTION:
+                self._perform_yaniv_action(players)
+                return None
+
+            if action in utils.DISCARD_ACTION_LIST:
+                self._perform_discard_action(players, action)
+                self.discarding = False
+                return None
+
+        raise Exception("invalid yaniv action")
 
     def get_legal_actions(self, players: list[YanivPlayer], player_id):
         if not self.discarding:
@@ -57,7 +79,7 @@ class YanivRound(object):
             legal_actions.append(card.suit + card.rank)
 
         suitKey = lambda c: c.suit
-        rankKey = lambda c: utils.rank2int[c.rank]
+        rankKey = lambda c: c.get_rank_as_int()
         # groups of rank
         for rank, group in groupby(sorted(hand, key=rankKey), key=rankKey):
             group = sorted(list(group), key=suitKey)
@@ -89,7 +111,7 @@ class YanivRound(object):
             cards = sorted(group, key=rankKey)
 
             for _, straight in groupby(
-                enumerate(cards), key=lambda x: x[0] - utils.rank2int[x[1].rank]
+                enumerate(cards), key=lambda x: x[0] - x[1].get_rank_as_int()
             ):
                 straight = list(straight)
                 if len(straight) < 3:
@@ -98,17 +120,17 @@ class YanivRound(object):
                 straight = [s[1] for s in straight]
 
                 # whole straight
-                legal_actions.append(utils.straight_to_action(straight))
+                legal_actions.append(utils.cardlist_to_action(straight))
 
                 if len(straight) >= 4:
-                    legal_actions.append(utils.straight_to_action(straight[0:3]))
-                    legal_actions.append(utils.straight_to_action(straight[1:4]))
+                    legal_actions.append(utils.cardlist_to_action(straight[0:3]))
+                    legal_actions.append(utils.cardlist_to_action(straight[1:4]))
 
                 if len(straight) == 5:
-                    legal_actions.append(utils.straight_to_action(straight[2:5]))
+                    legal_actions.append(utils.cardlist_to_action(straight[2:5]))
 
-                    legal_actions.append(utils.straight_to_action(straight[0:4]))
-                    legal_actions.append(utils.straight_to_action(straight[1:5]))
+                    legal_actions.append(utils.cardlist_to_action(straight[0:4]))
+                    legal_actions.append(utils.cardlist_to_action(straight[1:5]))
 
         return legal_actions
 
@@ -121,25 +143,30 @@ class YanivRound(object):
         """
         state = {}
         player = players[player_id]
-        state["hand"] = cards2list(player.hand)
-        state["target"] = self.target.str
-        state["played_cards"] = cards2list(self.played_cards)
-        others_hand = []
-        for player in players:
-            if player.player_id != player_id:
-                others_hand.extend(player.hand)
-        state["others_hand"] = cards2list(others_hand)
+
+        state["hand"] = utils.cards_to_list(player.hand)
+
+        state["discard_pile"] = [utils.cards_to_list(cards) for cards in self.discard_pile]
+        state["known_cards"] = [utils.cards_to_list(cards) for cards in self.known_cards]
+
         state["legal_actions"] = self.get_legal_actions(players, player_id)
-        state["card_num"] = []
-        for player in players:
-            state["card_num"].append(len(player.hand))
+        state["hand_lenghts"] = [len(p.hand) for p in players]
+        
         return state
 
     def replace_deck(self):
         """Add cards have been played to deck"""
-        self.dealer.deck.extend(self.played_cards)
+        self.dealer.deck.extend((card for d in self.discard_pile for card in d))
         self.dealer.shuffle()
-        self.played_cards = []
+        self.discard_pile = []
+
+    def flip_top_card(self):
+        self.discard_pile.append([self.dealer.draw_card()])
+
+    def _next_player(self):
+        """increments the player counter"""
+        self.current_player = (self.current_player + 1) % self.num_players
+        self.discarding = True
 
     def _perform_draw_action(self, players):
         if not self.dealer.deck:
@@ -152,12 +179,16 @@ class YanivRound(object):
 
     def _perform_pickup_up_top_card_action(self, players):
         card = self.discard_pile[-1].pop()
+        if len(self.discard_pile[-1]) == 0:
+            self.discard_pile.pop()
 
         players[self.current_player].hand.append(card)
         self.known_cards[self.current_player].append(card)
 
     def _perform_pickup_up_bottom_card_action(self, players):
         card = self.discard_pile[-1].pop(0)
+        if len(self.discard_pile[-1]) == 0:
+            self.discard_pile.pop()
 
         players[self.current_player].hand.append(card)
         self.known_cards[self.current_player].append(card)
@@ -192,8 +223,32 @@ class YanivRound(object):
         else:
             winner = self.current_player
             scores[self.current_player] = 0
-        
+
         self.winner = winner
         self.scores = scores
         self.is_over = True
 
+    def _perform_discard_action(self, players, action):
+        discard = []
+        current_hand = players[self.current_player].hand
+
+        toDiscard = [action[i : i + 2] for i in range(0, len(action), 2)]
+
+        cardsToDiscard = []
+        for card in current_hand:
+            for d in toDiscard:
+                if card.suit == d[0] and card.rank == d[1]:
+                    cardsToDiscard.append(card)
+                    toDiscard.remove(d)
+                    break
+
+            if len(toDiscard) == 0:
+                break
+
+        
+        for card in cardsToDiscard:
+            current_hand.remove(card)
+            if card in self.known_cards[self.current_player]:
+                self.known_cards[self.current_player].remove(card)
+
+        self.discard_pile.append(cardsToDiscard)

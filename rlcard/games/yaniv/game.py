@@ -1,12 +1,13 @@
 from copy import deepcopy
 import numpy as np
 
-from rlcard.games.uno import Dealer
-from rlcard.games.uno import Player
-from rlcard.games.uno import Round
+from rlcard.games.yaniv.dealer import YanivDealer
+from rlcard.games.yaniv.player import YanivPlayer
+from rlcard.games.yaniv.round import YanivRound
+from rlcard.games.yaniv import utils
 
 
-class UnoGame(object):
+class YanivGame(object):
 
     def __init__(self, allow_step_back=False):
         self.allow_step_back = allow_step_back
@@ -19,7 +20,6 @@ class UnoGame(object):
 
         Returns:
             (tuple): Tuple containing:
-
                 (dict): The first state in one game
                 (int): Current player's id
         '''
@@ -27,22 +27,20 @@ class UnoGame(object):
         self.payoffs = [0 for _ in range(self.num_players)]
 
         # Initialize a dealer that can deal cards
-        self.dealer = Dealer(self.np_random)
+        self.dealer = YanivDealer(self.np_random)
 
         # Initialize four players to play the game
-        self.players = [Player(i, self.np_random) for i in range(self.num_players)]
+        self.players = [YanivPlayer(i, self.np_random) for i in range(self.num_players)]
 
-        # Deal 7 cards to each player to prepare for the game
-        for player in self.players:
-            self.dealer.deal_cards(player, 7)
-
+        # Deal 5 cards to each player
+        for _ in range(utils.INITIAL_NUMBER_OF_CARDS):
+            for player in self.players:
+                player.hand.append(self.dealer.draw_card())
+        
         # Initialize a Round
-        self.round = Round(self.dealer, self.num_players, self.np_random)
-
-        # flip and perfrom top card
-        top_card = self.round.flip_top_card()
-        self.round.perform_top_card(self.players, top_card)
-
+        self.round = YanivRound(self.dealer, self.num_players, self.np_random)
+        self.round.flip_top_card()
+        
         # Save the hisory for stepping back to the last state.
         self.history = []
 
@@ -107,9 +105,10 @@ class UnoGame(object):
             (list): Each entry corresponds to the payoff of one player
         '''
         winner = self.round.winner
-        if winner is not None and len(winner) == 1:
-            self.payoffs[winner[0]] = 1
-            self.payoffs[1 - winner[0]] = -1
+
+        self.payoffs = [-1]*self.get_player_num() 
+        self.payoffs[winner] = 1
+
         return self.payoffs
 
     def get_legal_actions(self):
@@ -134,9 +133,9 @@ class UnoGame(object):
         ''' Return the number of applicable actions
 
         Returns:
-            (int): The number of actions. There are 61 actions
+            (int): The number of actions. 
         '''
-        return 61
+        return len(utils.ACTION_LIST)
 
     def get_player_id(self):
         ''' Return the current player's id
@@ -156,23 +155,23 @@ class UnoGame(object):
 
 
 ## For test
-#if __name__ == '__main__':
-#    #import time
-#    #random.seed(0)
-#    #start = time.time()
-#    game = UnoGame()
-#    for _ in range(1):
-#        state, button = game.init_game()
-#        print(button, state)
-#        i = 0
-#        while not game.is_over():
-#            i += 1
-#            legal_actions = game.get_legal_actions()
-#            print('legal_actions', legal_actions)
-#            action = np.random.choice(legal_actions)
-#            print('action', action)
-#            print()
-#            state, button = game.step(action)
-#            print(button, state)
-#        print(game.get_payoffs())
-#    print('step', i)
+if __name__ == '__main__':
+   #import time
+   #random.seed(0)
+   #start = time.time()
+   game = YanivGame()
+   for _ in range(1):
+       state, button = game.init_game()
+       print(button, state)
+       i = 0
+       while not game.is_over():
+           i += 1
+           legal_actions = game.get_legal_actions()
+           print('legal_actions', legal_actions)
+           action = np.random.choice(legal_actions)
+           print('action', action)
+           print()
+           state, button = game.step(action)
+           print(button, state)
+       print(game.get_payoffs())
+   print('step', i)
