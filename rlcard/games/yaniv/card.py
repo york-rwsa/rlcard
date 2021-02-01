@@ -74,6 +74,9 @@ class YanivCard(object):
         rank_index = YanivCard.ranks.index(self.rank)
         return rank_index + 100 * suit_index
 
+    def __lt__(self, other):
+        return self.get_card_id() < other.get_card_id()
+
     def __str__(self):
         return self.suit + self.rank
 
