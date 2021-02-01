@@ -162,7 +162,7 @@ class YanivRound(object):
         """Add cards have been played to deck"""
         self.dealer.deck.extend((card for d in self.discard_pile for card in d))
         self.dealer.shuffle()
-        self.discard_pile = []
+        self.discard_pile = [self.discard_pile.pop()]
 
     def flip_top_card(self):
         self.discard_pile.append([self.dealer.draw_card()])

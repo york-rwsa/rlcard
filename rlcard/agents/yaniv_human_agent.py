@@ -20,11 +20,23 @@ class HumanAgent(object):
         """
         print(state["raw_obs"])
         _print_state(state["raw_obs"], state["action_record"])
-        action = int(input(">> You choose action (integer): "))
-        while action < 0 or action >= len(state["legal_actions"]):
-            print("Action illegel...")
-            action = int(input(">> Re-choose action (integer): "))
-        return state["raw_legal_actions"][state["legal_actions"].index(sorted(state["legal_actions"])[action])]
+
+        while True:
+            action = input(">> You choose action (integer): ")
+            try:
+                action = int(action)
+            except ValueError:
+                print("Valid number, please")
+                continue
+
+            if action in range(len(state["legal_actions"])):
+                break
+            else:
+                print("Illegal action, try again")
+
+        return state["raw_legal_actions"][
+            state["raw_legal_actions"].index(sorted(state["raw_legal_actions"])[action])
+        ]
 
     def eval_step(self, state):
         """Predict the action given the curent state for evaluation. The same to step here.

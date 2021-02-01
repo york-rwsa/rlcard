@@ -38,9 +38,9 @@ class YanivNoviceRuleAgent(object):
         decoded_legals = [utils.ACTION_LIST[a] for a in legal_actions]
 
         # picking up
+        actions = []
         if utils.DRAW_CARD_ACTION in decoded_legals:
             availcards = utils.decode_cards(state["obs"][1])
-            actions = []
             if availcards[0].get_score() <= 2:
                 actions.append(utils.ACTION_SPACE[utils.PICKUP_TOP_DISCARD_ACTION])
 
@@ -50,33 +50,32 @@ class YanivNoviceRuleAgent(object):
             # otherwise
             if len(actions) == 0:
                 actions = [utils.ACTION_SPACE[utils.DRAW_CARD_ACTION]]
+        else:
+            # discarding
+            if utils.ACTION_SPACE[utils.YANIV_ACTION] in legal_actions:
+                hand = utils.decode_cards(state["obs"][0])
+                handscore = sum(map(methodcaller("get_score"), hand))
+                known_cards = utils.decode_cards(state["obs"][3])
+                known_score = sum(map(methodcaller("get_score"), known_cards))
+                if handscore < known_score:
+                    actions.append(utils.ACTION_SPACE[utils.YANIV_ACTION])
 
-            return np.random.choice(actions)
-
-        # discarding
-        actions = []
-        if utils.ACTION_SPACE[utils.YANIV_ACTION] in legal_actions:
-            hand = utils.decode_cards(state["obs"][0])
-            handscore = sum(map(methodcaller("get_score"), hand))
-            known_cards = utils.decode_cards(state["obs"][3])
-            known_score = sum(map(methodcaller("get_score"), known_cards))
-            if handscore < known_score:
-                actions.append(utils.ACTION_SPACE[utils.YANIV_ACTION])
-
-        legal_discard_actions = [
-            a for a in legal_actions if a != utils.ACTION_SPACE[utils.YANIV_ACTION]
-        ]
-        legal_discards = [utils.ACTION_LIST[a] for a in legal_discard_actions]
-        discard_scores = list(map(utils.score_discard_action, legal_discards))
-        max_discard = max(discard_scores)
-        best_discards = [
-            legal_discard_actions[i]
-            for i, ds in enumerate(discard_scores)
-            if ds == max_discard
-        ]
-        actions.extend(best_discards)
+            legal_discard_actions = [
+                a for a in legal_actions if a != utils.ACTION_SPACE[utils.YANIV_ACTION]
+            ]
+            legal_discards = [utils.ACTION_LIST[a] for a in legal_discard_actions]
+            discard_scores = list(map(utils.score_discard_action, legal_discards))
+            max_discard = max(discard_scores)
+            best_discards = [
+                legal_discard_actions[i]
+                for i, ds in enumerate(discard_scores)
+                if ds == max_discard
+            ]
+            actions.extend(best_discards)
 
         return np.random.choice(actions)
+        # # since useraw is true
+        # return np.random.choice([utils.ACTION_LIST[a] for a in actions])
 
     def eval_step(self, state):
         """Predict the action given the current state for evaluation.
