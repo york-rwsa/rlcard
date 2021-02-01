@@ -37,6 +37,7 @@ with open(
     ACTION_SPACE.update({YANIV_ACTION: len(ACTION_SPACE)})
     ACTION_LIST = list(ACTION_SPACE.keys())
 
+
 def get_hand_score(cards: list[YanivCard]) -> int:
     """Judge the score of a given cards set
 
@@ -53,17 +54,39 @@ def get_hand_score(cards: list[YanivCard]) -> int:
 
     return score
 
+
 def cardlist_to_action(cards: list[YanivCard]) -> str:
     return "".join([str(c) for c in cards])
 
+
 def cards_to_list(cards: list[YanivCard]) -> list[str]:
-    return [
-        str(c) for c in sorted(cards, key=lambda x: (x.suit, x.get_rank_as_int()))
-    ]
+    return [str(c) for c in sorted(cards, key=lambda x: (x.suit, x.get_rank_as_int()))]
+
 
 def cards_to_str(cards: list[YanivCard]) -> str:
     return "".join(cards_to_list(cards))
 
 
 def init_deck() -> list[YanivCard]:
-    return [YanivCard(suit, rank) for suit in YanivCard.suits for rank in YanivCard.ranks]
+    return [
+        YanivCard(suit, rank) for suit in YanivCard.suits for rank in YanivCard.ranks
+    ]
+
+
+# def decode_cards(env_cards: np.ndarray) -> List[Card]:
+#     result = []  # type: List[Card]
+#     if len(env_cards) != 52:
+#         raise GinRummyProgramError("len(env_cards) is {}: should be 52.".format(len(env_cards)))
+#     for i in range(52):
+#         if env_cards[i] == 1:
+#             card = _deck[i]
+#             result.append(card)
+#     return result
+
+
+def encode_cards(cards: list[YanivCard]) -> np.ndarray:
+    plane = np.zeros(52, dtype=int)
+    for card in cards:
+        card_id = card.get_card_id()
+        plane[card_id] = 1
+    return plane

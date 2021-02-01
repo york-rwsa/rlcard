@@ -146,12 +146,16 @@ class YanivRound(object):
 
         state["hand"] = utils.cards_to_list(player.hand)
 
-        state["discard_pile"] = [utils.cards_to_list(cards) for cards in self.discard_pile]
-        state["known_cards"] = [utils.cards_to_list(cards) for cards in self.known_cards]
+        state["discard_pile"] = [
+            utils.cards_to_list(cards) for cards in self.discard_pile
+        ]
+        state["known_cards"] = [
+            utils.cards_to_list(cards) for cards in self.known_cards
+        ]
 
         state["legal_actions"] = self.get_legal_actions(players, player_id)
         state["hand_lenghts"] = [len(p.hand) for p in players]
-        
+
         return state
 
     def replace_deck(self):
@@ -163,9 +167,12 @@ class YanivRound(object):
     def flip_top_card(self):
         self.discard_pile.append([self.dealer.draw_card()])
 
+    def get_next_player(self):
+        return (self.current_player + 1) % self.num_players
+
     def _next_player(self):
         """increments the player counter"""
-        self.current_player = (self.current_player + 1) % self.num_players
+        self.current_player = self.get_next_player()
         self.discarding = True
 
     def _perform_draw_action(self, players):
@@ -186,12 +193,12 @@ class YanivRound(object):
     def _pickup_card_from_discard_pile(self, players, top):
         # discard_pile[-2] because the step before the player discards
         # otherwise they pick up their own card
-        prev_discard = self.discard_pile[-2] 
+        prev_discard = self.discard_pile[-2]
         if top:
             card = prev_discard.pop()
         else:
             card = prev_discard.pop(0)
-            
+
         if len(prev_discard) == 0:
             self.discard_pile.remove(prev_discard)
 
@@ -250,7 +257,6 @@ class YanivRound(object):
             if len(toDiscard) == 0:
                 break
 
-        
         for card in cardsToDiscard:
             current_hand.remove(card)
             if card in self.known_cards[self.current_player]:

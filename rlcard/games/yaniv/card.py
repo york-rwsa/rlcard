@@ -41,6 +41,11 @@ class YanivCard(object):
 
         return cls.rankScoreMap[rank]
 
+    def get_card_id(self) -> int:
+        rank_id = self.ranks.index(self.rank)
+        suit_id = self.suits.index(self.suit)
+        return rank_id + 13 * suit_id
+
     def get_rank_as_int(self) -> int:
         return self.rank2int(self.rank)
 
@@ -65,8 +70,8 @@ class YanivCard(object):
             return NotImplemented
 
     def __hash__(self):
-        suit_index = Card.suits.index(self.suit)
-        rank_index = Card.ranks.index(self.rank)
+        suit_index = YanivCard.suits.index(self.suit)
+        rank_index = YanivCard.ranks.index(self.rank)
         return rank_index + 100 * suit_index
 
     def __str__(self):
