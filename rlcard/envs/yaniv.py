@@ -46,7 +46,17 @@ class YanivEnv(Env):
         opponent_hand_size[len(next_player.hand)] = 1
         obs = list(map(utils.encode_cards, card_obs)) + [opponent_hand_size]
 
-        return {"obs": np.array(obs), "legal_actions": self._get_legal_actions()}
+        extracted_state = {"obs": np.array(obs), "legal_actions": self._get_legal_actions()}
+
+        if self.allow_raw_data:
+            extracted_state['raw_obs'] = state
+            extracted_state['raw_legal_actions'] = [
+                a for a in state['legal_actions']]
+
+        if self.record_action:
+            extracted_state['action_record'] = self.action_recorder
+        
+        return extracted_state
 
     def get_payoffs(self):
         return np.array(self.game.get_payoffs())

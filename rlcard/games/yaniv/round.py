@@ -138,7 +138,7 @@ class YanivRound(object):
         """Get player's state
 
         Args:
-            players (list): The list of UnoPlayer
+            players (list): The list of player
             player_id (int): The id of the player
         """
         state = {}
@@ -154,7 +154,7 @@ class YanivRound(object):
         ]
 
         state["legal_actions"] = self.get_legal_actions(players, player_id)
-        state["hand_lenghts"] = [len(p.hand) for p in players]
+        state["hand_lengths"] = [len(p.hand) for p in players]
 
         return state
 

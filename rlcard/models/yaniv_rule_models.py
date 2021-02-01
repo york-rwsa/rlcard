@@ -14,7 +14,7 @@ class YanivNoviceRuleAgent(object):
     """
 
     def __init__(self):
-        self.use_raw = False  # FIXME: should this be True ? idk what this means lol
+        self.use_raw = False # TODO: convert to use raw, as much easeir to read
 
     @staticmethod
     def step(state):

@@ -9,7 +9,7 @@ class YanivCard(object):
 
     suit = None
     rank = None
-    suits = ["S", "H", "D", "C"]
+    suits = ["C", "D", "H", "S"]
     ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K"]
     rankScoreMap = {
         "A": 1,
@@ -42,8 +42,8 @@ class YanivCard(object):
         return cls.rankScoreMap[rank]
 
     def get_card_id(self) -> int:
-        rank_id = self.ranks.index(self.rank)
-        suit_id = self.suits.index(self.suit)
+        rank_id = self.get_rank_id()
+        suit_id = self.get_suit_id()
         return rank_id + 13 * suit_id
 
     def get_rank_as_int(self) -> int:
@@ -51,6 +51,12 @@ class YanivCard(object):
 
     def get_score(self) -> int:
         return self.rank2score(self.rank)
+
+    def get_suit_id(self) -> int:
+        return self.suits.index(self.suit)
+
+    def get_rank_id(self) -> int:
+        return self.ranks.index(self.rank)
 
     def __init__(self, suit, rank):
         """Initialize the suit and rank of a card
@@ -82,3 +88,21 @@ class YanivCard(object):
 
     def __repr__(self):
         return self.__str__()
+    
+    def to_unicode(self):
+        utf_ace_suits = [
+            0x1F0D1,
+            0x1F0C1,
+            0x1F0B1,
+            0x1F0A1,
+        ]
+        
+        rank_id = self.get_rank_id()
+        suit_id = self.get_suit_id()
+
+        if rank_id == 0:
+            ucode = utf_ace_suits[suit_id]
+        else:
+            ucode = utf_ace_suits[suit_id] + rank_id
+        
+        return chr(ucode)
