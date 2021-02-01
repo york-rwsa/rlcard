@@ -178,17 +178,22 @@ class YanivRound(object):
         # TODO deal with itsbah
 
     def _perform_pickup_up_top_card_action(self, players):
-        card = self.discard_pile[-1].pop()
-        if len(self.discard_pile[-1]) == 0:
-            self.discard_pile.pop()
-
-        players[self.current_player].hand.append(card)
-        self.known_cards[self.current_player].append(card)
+        self._pickup_card_from_discard_pile(players, top=True)
 
     def _perform_pickup_up_bottom_card_action(self, players):
-        card = self.discard_pile[-1].pop(0)
-        if len(self.discard_pile[-1]) == 0:
-            self.discard_pile.pop()
+        self._pickup_card_from_discard_pile(players, top=False)
+
+    def _pickup_card_from_discard_pile(self, players, top):
+        # discard_pile[-2] because the step before the player discards
+        # otherwise they pick up their own card
+        prev_discard = self.discard_pile[-2] 
+        if top:
+            card = prev_discard.pop()
+        else:
+            card = prev_discard.pop(0)
+            
+        if len(prev_discard) == 0:
+            self.discard_pile.remove(prev_discard)
 
         players[self.current_player].hand.append(card)
         self.known_cards[self.current_player].append(card)

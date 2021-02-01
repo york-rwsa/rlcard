@@ -44,7 +44,21 @@ class TestYanivRound(unittest.TestCase):
         self.assertIn(action, utils.pickup_actions)
         _, next_player = game.step(action)
         self.assertEqual(next_player, (current_player + 1) % game.get_player_num())
-        
+    
+    def test_pickup_discard(self):
+        game = Game()
+        _, current_player = game.init_game()
+
+        card = game.players[current_player].hand[0]
+        action = str(card)
+        _, current_player = game.step(action)
+
+        _, next_player = game.step(utils.DRAW_CARD_ACTION)
+        _, next_player = game.step(np.random.choice([a for a in game.get_legal_actions() if a != 'yaniv']))
+        _, current_player = game.step(utils.PICKUP_TOP_DISCARD_ACTION)
+
+        self.assertIn(card, game.players[next_player].hand)
+
     def test_proceed_game(self):
         game = Game()
         game.init_game()
