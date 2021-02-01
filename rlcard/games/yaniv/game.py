@@ -102,14 +102,20 @@ class YanivGame(object):
 
     def get_payoffs(self):
         ''' Return the payoffs of the game
+        1 if game won
+        -(score / 50) otherwise
 
         Returns:
             (list): Each entry corresponds to the payoff of one player
         '''
-        winner = self.round.winner
-
-        self.payoffs = [-1]*self.get_player_num() 
-        self.payoffs[winner] = 1
+        self.payoffs = []
+        for score in self.round.scores:
+            if score == 0:
+                payoff = 1
+            else:
+                payoff = -(score / 50)
+            
+            self.payoffs.append(payoff)
 
         return self.payoffs
 

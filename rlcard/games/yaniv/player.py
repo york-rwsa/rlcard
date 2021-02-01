@@ -1,6 +1,6 @@
 
 from typing import List
-from rlcard.core import Card
+from rlcard.games.yaniv.card import YanivCard
 
 class YanivPlayer(object):
 
@@ -12,7 +12,7 @@ class YanivPlayer(object):
         '''
         self.np_random = np_random
         self.player_id = player_id
-        self.hand = [] # type: List[Card]
+        self.hand = [] # type: List[YanivCard]
 
     def get_player_id(self):
         ''' Return the id of the player
