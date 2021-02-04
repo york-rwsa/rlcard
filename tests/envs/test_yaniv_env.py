@@ -5,7 +5,6 @@ import rlcard
 from rlcard.agents.random_agent import RandomAgent
 from determism_util import is_deterministic
 
-
 class TestYanivEnv(unittest.TestCase):
     def test_reset_and_extract_state(self):
         env = rlcard.make("yaniv")

@@ -5,6 +5,7 @@ from collections import OrderedDict
 from copy import copy
 from rlcard.games.yaniv.card import YanivCard
 import rlcard
+from typing import List
 from operator import methodcaller
 
 ASSAF_PENALTY = 30
@@ -39,7 +40,7 @@ with open(
     ACTION_LIST = list(ACTION_SPACE.keys())
 
 
-def get_hand_score(cards: list[YanivCard]) -> int:
+def get_hand_score(cards: List[YanivCard]) -> int:
     """Judge the score of a given cards set
 
     Args:
@@ -56,19 +57,19 @@ def get_hand_score(cards: list[YanivCard]) -> int:
     return score
 
 
-def cardlist_to_action(cards: list[YanivCard]) -> str:
+def cardlist_to_action(cards: List[YanivCard]) -> str:
     return "".join([str(c) for c in cards])
 
 
-def cards_to_list(cards: list[YanivCard]) -> list[str]:
+def cards_to_list(cards: List[YanivCard]) -> List[str]:
     return [str(c) for c in sorted(cards, key=lambda x: (x.suit, x.get_rank_as_int()))]
 
 
-def cards_to_str(cards: list[YanivCard]) -> str:
+def cards_to_str(cards: List[YanivCard]) -> str:
     return "".join(cards_to_list(cards))
 
 
-def init_deck() -> list[YanivCard]:
+def init_deck() -> List[YanivCard]:
     return [
         YanivCard(suit, rank) for suit in YanivCard.suits for rank in YanivCard.ranks
     ]
@@ -87,8 +88,8 @@ def make_card_from_card_id(card_id: int) -> YanivCard:
     suit = YanivCard.suits[suit_id]
     return YanivCard(rank=rank, suit=suit)
 
-def decode_cards(env_cards: np.ndarray) -> list[YanivCard]:
-    result = []  # type: list[YanivCard]
+def decode_cards(env_cards: np.ndarray) -> List[YanivCard]:
+    result = []  # type: List[YanivCard]
     if len(env_cards) != 52:
         raise Exception("len(env_cards) is {}: should be 52.".format(len(env_cards)))
     for i in range(52):
@@ -98,7 +99,7 @@ def decode_cards(env_cards: np.ndarray) -> list[YanivCard]:
     return result
 
 
-def encode_cards(cards: list[YanivCard]) -> np.ndarray:
+def encode_cards(cards: List[YanivCard]) -> np.ndarray:
     plane = np.zeros(52, dtype=int)
     for card in cards:
         card_id = card.get_card_id()

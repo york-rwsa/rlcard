@@ -1,11 +1,11 @@
 from rlcard.core import Card
-import rlcard.games.yaniv.utils as utils
 
+from rlcard.games.yaniv import utils
 from rlcard.games.yaniv.player import YanivPlayer
 from rlcard.games.yaniv.dealer import YanivDealer
 
 from itertools import groupby, combinations
-
+from typing import List
 
 class YanivRound(object):
     def __init__(self, dealer: YanivDealer, num_players, np_random):
@@ -64,7 +64,7 @@ class YanivRound(object):
 
         raise Exception("invalid yaniv action")
 
-    def get_legal_actions(self, players: list[YanivPlayer], player_id):
+    def get_legal_actions(self, players: List[YanivPlayer], player_id):
         if not self.discarding:
             return utils.pickup_actions
 
