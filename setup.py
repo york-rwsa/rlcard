@@ -43,6 +43,7 @@ setuptools.setup(
                    'agents/gin_rummy_human_agent/gui_cards/*',
                    'agents/gin_rummy_human_agent/gui_cards/cards_png/*',
                    'agents/gin_rummy_human_agent/gui_gin_rummy/*'
+                   'games/yaniv/jsondata/*',
                    ]},
     install_requires=[
         'numpy>=1.16.3',
