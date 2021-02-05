@@ -6,6 +6,7 @@ from rlcard.games.yaniv.player import YanivPlayer
 from rlcard.games.yaniv.card import YanivCard as Card
 import rlcard.games.yaniv.utils as utils
 
+from itertools import combinations
 
 class TestYanivRound(unittest.TestCase):
     # def setUp(self):
@@ -239,6 +240,20 @@ class TestYanivRound(unittest.TestCase):
         rnd._perform_discard_action(players, "D5D6D7")
         self.assertEqual(utils.cards_to_str(players[0].hand), "")
         self.assertEqual(utils.cards_to_str(rnd.discard_pile[-1]), "D5D6D7")
+
+    # just to test - takes too long to run to keep in suite
+    # def test_all_legal_actions(self):
+    #     deck = utils.init_deck()
+    #     players = [
+    #         YanivPlayer(0, None),
+    #     ]
+    #     rnd = YanivRound(None, 1, None)
+    #     for handsize in range(6):
+    #         for hand in combinations(deck, handsize):
+    #             players[0].hand = hand
+    #             legal_actions = rnd.get_legal_actions(players, 0)
+    #             for a in legal_actions:
+    #                 self.assertIn(a, utils.ACTION_LIST)
 
 
 if __name__ == "__main__":
