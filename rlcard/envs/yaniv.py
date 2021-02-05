@@ -15,7 +15,7 @@ class YanivEnv(Env):
     def _extract_state(self, state):
         if self.game.is_over():
             return {
-                "obs": np.array([utils.encode_cards([]) for _ in range(7)]),
+                "obs": np.zeros(self.state_shape),
                 "legal_actions": self._get_legal_actions(),
             }
 
