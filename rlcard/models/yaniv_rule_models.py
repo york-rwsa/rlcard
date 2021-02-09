@@ -40,9 +40,10 @@ class YanivNoviceRuleAgent(object):
         actions = []
         if utils.DRAW_CARD_ACTION in legal_actions:
             actions = cls.best_pickup_actions(raw_state)
+
         else:
             # discarding
-            if utils.YANIV_ACTION in legal_actions :
+            if utils.YANIV_ACTION in legal_actions:
                 if cls.should_yaniv(raw_state):
                     actions.append(utils.YANIV_ACTION)
         
@@ -57,8 +58,13 @@ class YanivNoviceRuleAgent(object):
 
     @staticmethod
     def best_pickup_actions(state):
-        actions = []
-        
+        """ Returns the best pickup actions as follows:
+        either 
+        [draw_card, pickup_top/bottom_card] if bottom/top card is lte 2.
+        [draw_card] otherwise
+        """
+        actions = [utils.DRAW_CARD_ACTION]
+
         availcards = state["discard_pile"][-2]
         cardscores = list(map(methodcaller('get_score'), map(utils.make_card_from_str, [availcards[0], availcards[-1]])))
         minscore = min(cardscores)
@@ -71,10 +77,7 @@ class YanivNoviceRuleAgent(object):
                 actions.append(utils.PICKUP_BOTTOM_DISCARD_ACTION)
             else:
                 raise Exception("min score not in cardscores")
-        else:
-            # otherwise draw a card
-            actions.append(utils.DRAW_CARD_ACTION)
-        
+
         return actions
 
     @staticmethod
