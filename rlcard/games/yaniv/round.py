@@ -167,6 +167,12 @@ class YanivRound(object):
         self.dealer.deck.extend((card for d in self.discard_pile for card in d))
         self.dealer.shuffle()
         self.discard_pile = top_discard
+
+        # end the game if repalce deck is required with everyone losing
+        self.winner = -1
+        self.is_over = True
+
+
         
     def flip_top_card(self):
         self.discard_pile.append([self.dealer.draw_card()])
@@ -187,6 +193,7 @@ class YanivRound(object):
         players[self.current_player].hand.append(card)
 
         # TODO deal with itsbah
+
 
     def _perform_pickup_up_top_card_action(self, players):
         self._pickup_card_from_discard_pile(players, top=True)

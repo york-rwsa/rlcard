@@ -68,7 +68,10 @@ class TestYanivRound(unittest.TestCase):
             self.assertIn(action, utils.ACTION_LIST)
             _, _ = game.step(action)
 
-        self.assertEqual(game.actions[-1], 'yaniv')
+        if game.round.winner != -1:
+            self.assertEqual(game.actions[-1], 'yaniv')
+        else:
+            self.assertEqual(game.actions[-1], 'draw_card')
 
     def test_get_payoffs(self):
         game = Game()
@@ -77,13 +80,18 @@ class TestYanivRound(unittest.TestCase):
             actions = game.get_legal_actions()
             action = np.random.choice(actions)
             state, _ = game.step(action)
-            
+
         payoffs = game.get_payoffs()
+            
+            
         for player in game.players:
             player_id = player.get_player_id()
             payoff = payoffs[player_id]    
-            
-            if game.round.winner == player_id:
+                
+                
+            if game.round.winner == -1:
+                self.assertEqual(payoff, -1)
+            elif game.round.winner == player_id:
                 self.assertEqual(payoff, 1)
             else:
                 self.assertEqual(payoff, -(game.round.scores[player_id] / 50))
