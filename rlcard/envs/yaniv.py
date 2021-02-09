@@ -30,7 +30,7 @@ class YanivEnv(Env):
 
         current_player = self.game.players[self.game.round.current_player]
         next_player = self.game.players[self.game.round.get_next_player()]
-        known_cards = self.game.round.known_cards[next_player.get_player_id()]
+        known_cards = self.game.round.known_cards[0]
         unknown_cards = self.game.round.dealer.deck + [
             c for c in next_player.hand if c not in known_cards
         ]

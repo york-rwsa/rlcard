@@ -14,10 +14,10 @@ class YanivNoviceRuleAgent(object):
     """
 
     def __init__(self):
-        self.use_raw = False # TODO: convert to use raw, as much easeir to read
+        self.use_raw = True
 
-    @staticmethod
-    def step(state):
+    @classmethod
+    def step(cls, state):
         """Predict the action given the current state.
             Novice strategy:
                 Discard stage:
@@ -27,55 +27,91 @@ class YanivNoviceRuleAgent(object):
                     - draw
                     - unless ace or 2
 
-
         Args:
             state (numpy.array): an numpy array that represents the current state
 
         Returns:
             action (int): the action predicted
         """
-        legal_actions = state["legal_actions"]
-        decoded_legals = [utils.ACTION_LIST[a] for a in legal_actions]
+        legal_actions = state['raw_legal_actions']
+        raw_state = state['raw_obs']
 
         # picking up
         actions = []
-        if utils.DRAW_CARD_ACTION in decoded_legals:
-            availcards = utils.decode_cards(state["obs"][1])
-            if availcards[0].get_score() <= 2:
-                actions.append(utils.ACTION_SPACE[utils.PICKUP_TOP_DISCARD_ACTION])
-
-            if len(availcards) == 2 and availcards[1].get_score() <= 2:
-                actions.append(utils.ACTION_SPACE[utils.PICKUP_BOTTOM_DISCARD_ACTION])
-
-            # otherwise
-            if len(actions) == 0:
-                actions = [utils.ACTION_SPACE[utils.DRAW_CARD_ACTION]]
+        if utils.DRAW_CARD_ACTION in legal_actions:
+            actions = cls.best_pickup_actions(raw_state)
         else:
             # discarding
-            if utils.ACTION_SPACE[utils.YANIV_ACTION] in legal_actions:
-                hand = utils.decode_cards(state["obs"][0])
-                handscore = sum(map(methodcaller("get_score"), hand))
-                known_cards = utils.decode_cards(state["obs"][3])
-                known_score = sum(map(methodcaller("get_score"), known_cards))
-                if handscore < known_score:
-                    actions.append(utils.ACTION_SPACE[utils.YANIV_ACTION])
+            if utils.YANIV_ACTION in legal_actions :
+                if cls.should_yaniv(raw_state):
+                    actions.append(utils.YANIV_ACTION)
+        
+            actions.extend(cls.best_discards(raw_state, legal_actions))
 
-            legal_discard_actions = [
-                a for a in legal_actions if a != utils.ACTION_SPACE[utils.YANIV_ACTION]
-            ]
-            legal_discards = [utils.ACTION_LIST[a] for a in legal_discard_actions]
-            discard_scores = list(map(utils.score_discard_action, legal_discards))
-            max_discard = max(discard_scores)
-            best_discards = [
-                legal_discard_actions[i]
-                for i, ds in enumerate(discard_scores)
-                if ds == max_discard
-            ]
-            actions.extend(best_discards)
-
+        # if for some reason no actions are decided to be taken
+        # then just pick a random legal action
+        if len(actions) == 0:
+            actions = legal_actions
+        
         return np.random.choice(actions)
-        # # since useraw is true
-        # return np.random.choice([utils.ACTION_LIST[a] for a in actions])
+
+    @staticmethod
+    def best_pickup_actions(state):
+        actions = []
+        
+        availcards = state["discard_pile"][-2]
+        cardscores = list(map(methodcaller('get_score'), map(utils.make_card_from_str, [availcards[0], availcards[-1]])))
+        minscore = min(cardscores)
+        # if a card that scores less than 3 pick it up
+        if minscore <= 2:
+            idx = cardscores.index(minscore)
+            if idx == 0:
+                actions.append(utils.PICKUP_TOP_DISCARD_ACTION)
+            elif idx == 1:
+                actions.append(utils.PICKUP_BOTTOM_DISCARD_ACTION)
+            else:
+                raise Exception("min score not in cardscores")
+        else:
+            # otherwise draw a card
+            actions.append(utils.DRAW_CARD_ACTION)
+        
+        return actions
+
+    @staticmethod
+    def best_discards(state, legal_actions):    
+        legal_discard_actions = [
+            a for a in state["legal_actions"] if a != utils.YANIV_ACTION
+        ]
+        discard_scores = list(map(utils.score_discard_action, legal_discard_actions))
+        max_discard = max(discard_scores)
+        best_discards = [
+            legal_discard_actions[i]
+            for i, ds in enumerate(discard_scores)
+            if ds == max_discard
+        ]
+        return best_discards
+
+    @staticmethod
+    def should_yaniv(state) -> bool:
+        """ decides whether or not yaniv is a good idea
+        True if should yaniv
+        False if should not
+        """
+        hand = map(utils.make_card_from_str, state["hand"])
+        handscore = sum(map(methodcaller("get_score"), hand))
+        # known cards is indexed from the first player then to the left
+        # so since yaniv is only 2 player atm the oppoenent is always idx 1
+        if len(state["known_cards"][1]) >= state["hand_lengths"][1] - 1:
+            # if we know all but one of their cards
+            known_cards = map(utils.make_card_from_str, state["known_cards"][1])
+            known_score = sum(map(methodcaller("get_score"), known_cards))
+            if handscore < known_score:
+                return True
+        else:
+            # yaniv anyway 
+            return True
+        
+        return False
 
     def eval_step(self, state):
         """Predict the action given the current state for evaluation.

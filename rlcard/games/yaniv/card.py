@@ -65,6 +65,10 @@ class YanivCard(object):
             suit: string, suit of the card, should be one of suits
             rank: string, rank of the card, should be one of ranks
         """
+        if suit not in self.suits:
+            raise ValueError("suit: {} not in suits".format(suit))
+        if rank not in self.ranks:
+            raise ValueError("rank: {} not in suits".format(rank))
         self.suit = suit
         self.rank = rank
 

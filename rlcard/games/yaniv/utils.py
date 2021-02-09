@@ -74,18 +74,32 @@ def init_deck() -> List[YanivCard]:
         YanivCard(suit, rank) for suit in YanivCard.suits for rank in YanivCard.ranks
     ]
 
+
 def make_card_from_card_id(card_id: int) -> YanivCard:
-    ''' Make card from its card_id
+    """Make card from its card_id
 
     Args:
         card_id: int in range(0, 52)
-     '''
+    """
     if not (0 <= card_id < 52):
         raise Exception("card_id is {}: should be 0 <= card_id < 52.".format(card_id))
     rank_id = card_id % 13
     suit_id = card_id // 13
     rank = YanivCard.ranks[rank_id]
     suit = YanivCard.suits[suit_id]
+    return YanivCard(rank=rank, suit=suit)
+
+def make_card_from_str(card: str) -> YanivCard:
+    """Make a card from its string repr
+
+    Args:
+        card: str like "HT" for 10 hearts or "D2" for 2 of diamonds
+    """
+    if len(card) != 2:
+        raise ValueError("Card `{}` should be of lenght 2".format(card))
+    suit = card[0]
+    rank = card[1]
+          
     return YanivCard(rank=rank, suit=suit)
 
 def decode_cards(env_cards: np.ndarray) -> List[YanivCard]:
@@ -110,8 +124,8 @@ def encode_cards(cards: List[YanivCard]) -> np.ndarray:
 def score_discard_action(action: str) -> int:
     if action not in DISCARD_ACTIONS:
         raise Exception(f"action {action} not in discard list ....")
-    
+
     cards_actions = [action[i : i + 2] for i in range(0, len(action), 2)]
     cards = [YanivCard(ca[0], ca[1]) for ca in cards_actions]
 
-    return sum(map(methodcaller('get_score'), cards))
+    return sum(map(methodcaller("get_score"), cards))
