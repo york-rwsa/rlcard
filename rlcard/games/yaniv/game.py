@@ -13,7 +13,6 @@ class YanivGame(object):
         self.np_random = np.random.RandomState()
         self.num_players = num_players
         self.payoffs = [0 for _ in range(self.num_players)]
-        self.actions = []
 
         # default config
         self._end_after_n_deck_replacements = 0
@@ -52,6 +51,7 @@ class YanivGame(object):
 
         # Save the hisory for stepping back to the last state.
         self.history = []
+        self.actions = []
 
         player_id = self.round.current_player
         state = self.get_state(player_id)
