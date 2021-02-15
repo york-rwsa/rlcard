@@ -129,3 +129,36 @@ def score_discard_action(action: str) -> int:
     cards = [YanivCard(ca[0], ca[1]) for ca in cards_actions]
 
     return sum(map(methodcaller("get_score"), cards))
+
+def tournament(env, num):
+    """ Evaluate he performance of the agents in the environment
+    Args:
+        env (Env class): The environment to be evaluated.
+        num (int): The number of games to play.
+    Returns:
+        A list of average payoffs for each player
+    """
+    payoffs = np.zeros(env.player_num, dtype=float)
+    wins = np.zeros(env.player_num, dtype=int)
+    draws = 0
+    counter = 0
+    roundlen = 0
+    while counter < num:
+        _, _payoffs = env.run(is_training=False)
+        payoffs += _payoffs
+        counter += 1
+        
+        if max(_payoffs) == 1:
+            wins[np.argmax(_payoffs)] += 1
+        else:
+            draws += 1
+
+        # print(len(env.game.actions))
+        roundlen += len(env.game.actions)
+        # print(env.game.actions)
+        
+    for i, _ in enumerate(payoffs):
+        payoffs[i] /= counter
+
+    roundlen /= counter
+    return payoffs, wins, draws, roundlen
