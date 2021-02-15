@@ -237,7 +237,7 @@ class YanivRound(object):
                 if i != self.current_player
             )
         ):
-            print("assaf!!")
+            print("player {} assaf".format(self.current_player))
             scores[self.current_player] += utils.ASSAF_PENALTY
 
             # the winner is the player with the lowest score closest
