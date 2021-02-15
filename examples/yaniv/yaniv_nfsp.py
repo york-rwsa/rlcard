@@ -27,10 +27,11 @@ config = {
 # Make environment
 env = rlcard.make("yaniv", config=config)
 eval_env = rlcard.make("yaniv", config=config)
-env.game.settings.print_settings()
+
 
 # Set the iterations numbers and how frequently we evaluate/save plot
 evaluate_every = 100
+save_every = 100
 evaluate_num = 100  # mahjong has 1000
 episode_num = 1000  # mahjong has 100000
 
@@ -42,9 +43,9 @@ train_every = 64
 
 # Set a global seed
 set_global_seed(0)
-save_dir = "./yaniv_nfsp"
-log_dir = os.path.join(save_dir, "logs")
-model_dir = os.path.join(save_dir, "model")
+save_dir = "yaniv_nfsp"
+log_dir = os.path.join(save_dir, "logs/")
+model_dir = os.path.join(save_dir, "model/")
 
 if not os.path.exists(model_dir):
     os.makedirs(model_dir)
@@ -108,7 +109,7 @@ with tf.Session() as sess:
             for i in range(env.player_num):
                 logger.log(
                     "Agent {}:\nWins: {}, Draws: {}, Payoff: {}".format(
-                        i, wins[i], draws[i], payoffs[i]
+                        i, wins[i], draws, payoffs[i]
                     )
                 )
 
@@ -124,5 +125,5 @@ with tf.Session() as sess:
     logger.plot("NFSP")
 
     # Save model
-    saver = tf.train.Saver()
+    #saver = tf.train.Saver()
     saver.save(sess, os.path.join(save_dir, "model"))
