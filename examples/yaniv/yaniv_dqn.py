@@ -19,7 +19,7 @@ def main():
         "end_after_n_steps": 100,
         "early_end_reward": -1,
         "seed": 0,
-        # "env_num": 32
+        "env_num": 2
     }
     # Make environment
     env = rlcard.make('yaniv', config=config)

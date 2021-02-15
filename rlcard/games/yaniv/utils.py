@@ -145,16 +145,29 @@ def tournament(env, num):
     roundlen = 0
     while counter < num:
         _, _payoffs = env.run(is_training=False)
-        payoffs += _payoffs
-        counter += 1
-        
-        if max(_payoffs) == 1:
-            wins[np.argmax(_payoffs)] += 1
+        if isinstance(_payoffs, list):
+            for _p in _payoffs:
+                for i, _ in enumerate(payoffs):
+                    payoffs[i] += _p[i]
+                counter += 1
+            
+            if max(_p) == 1:
+                wins[np.argmax(_p)] += 1
+            else:
+                draws += 1
         else:
-            draws += 1
+            for i, _ in enumerate(payoffs):
+                payoffs[i] += _payoffs[i]
+            counter += 1
+                
+            if max(_payoffs) == 1:
+                wins[np.argmax(_payoffs)] += 1
+            else:
+                draws += 1
+        
+            roundlen += len(env.game.actions)
 
         # print(len(env.game.actions))
-        roundlen += len(env.game.actions)
         # print(env.game.actions)
         
     for i, _ in enumerate(payoffs):
