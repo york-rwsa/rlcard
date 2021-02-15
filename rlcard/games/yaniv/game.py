@@ -15,6 +15,11 @@ class YanivGame(object):
         self.payoffs = [0 for _ in range(self.num_players)]
         self.actions = []
 
+        # default config
+        self._end_after_n_deck_replacements = 0
+        self._end_after_n_steps = 0
+        self._early_end_reward = 0
+
     def init_game(self):
         """Initialize players and state
 
@@ -38,7 +43,11 @@ class YanivGame(object):
                 player.hand.append(self.dealer.draw_card())
 
         # Initialize a Round
-        self.round = YanivRound(self.dealer, self.num_players, self.np_random)
+        self.round = YanivRound(
+            self.dealer,
+            self.num_players,
+            self.np_random,
+        )
         self.round.flip_top_card()
 
         # Save the hisory for stepping back to the last state.
@@ -47,6 +56,14 @@ class YanivGame(object):
         player_id = self.round.current_player
         state = self.get_state(player_id)
         return state, player_id
+
+    def configure(self, config):
+        """Specifiy some game specific parameters, such as player number"""
+        self._end_after_n_deck_replacements = config[
+            "end_after_n_deck_replacements"
+        ]
+        self._end_after_n_steps = config["end_after_n_steps"]
+        self._early_end_reward = config["early_end_reward"]
 
     def step(self, action):
         """Get the next state
@@ -72,6 +89,19 @@ class YanivGame(object):
         self.round.proceed_round(self.players, action)
         player_id = self.round.current_player
         state = self.get_state(player_id)
+
+        if self._end_after_n_steps > 0 and len(self.actions) >= self._end_after_n_steps:
+            self.round.winner = -1
+            self.round.is_over = True
+
+        # end the game if repalce deck is required with everyone losing
+        if (
+            self._end_after_n_deck_replacements > 0
+            and self.round.deck_replacements >= self._end_after_n_deck_replacements
+        ):
+            self.round.winner = -1
+            self.round.is_over = True
+
         return state, player_id
 
     def step_back(self):
@@ -109,7 +139,7 @@ class YanivGame(object):
         """
         self.payoffs = []
         if self.round.winner == -1:
-            self.payoffs = [-1 for _ in range(self.num_players)]
+            self.payoffs = [self._early_end_reward for _ in range(self.num_players)]
         else:
             for score in self.round.scores:
                 if score == 0:

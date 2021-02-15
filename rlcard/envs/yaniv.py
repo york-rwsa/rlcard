@@ -3,12 +3,22 @@ import numpy as np
 from rlcard.envs import Env
 from rlcard.games.yaniv import Game, utils
 
+DEFAULT_GAME_CONFIG = {
+    'end_after_n_deck_replacements': 0,
+    # zero otherwise
+    'end_after_n_steps': 100,
+    'early_end_reward': -1,
+}
+
 
 # for two player
 class YanivEnv(Env):
     def __init__(self, config):
         self.name = "yaniv"
         self.game = Game()
+        self.default_game_config = DEFAULT_GAME_CONFIG
+        
+        # configure game
         super().__init__(config)
         self.state_shape = [6, 52]
 

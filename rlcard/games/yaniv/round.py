@@ -7,8 +7,15 @@ from rlcard.games.yaniv.dealer import YanivDealer
 from itertools import groupby, combinations
 from typing import List
 
+
 class YanivRound(object):
-    def __init__(self, dealer: YanivDealer, num_players, np_random):
+    def __init__(
+        self,
+        dealer: YanivDealer,
+        num_players,
+        np_random,
+        end_after_n_deck_replacements=0,
+    ):
         """Initialize the round class
 
         Args:
@@ -29,6 +36,8 @@ class YanivRound(object):
         self.is_over = False
         self.winner = None
         self.scores = None
+
+        self.deck_replacements = 0
 
     def proceed_round(self, players, action):
         """Call other Classes's functions to keep one round running
@@ -152,12 +161,15 @@ class YanivRound(object):
 
         # known cards starts at the current player index
         state["known_cards"] = [
-            utils.cards_to_list(cards) for cards in self.known_cards[player_id:] + self.known_cards[:player_id]
+            utils.cards_to_list(cards)
+            for cards in self.known_cards[player_id:] + self.known_cards[:player_id]
         ]
 
         state["legal_actions"] = self.get_legal_actions(players, player_id)
         # also indexed from current player
-        state["hand_lengths"] = [len(p.hand) for p in players[player_id:] + players[:player_id]]
+        state["hand_lengths"] = [
+            len(p.hand) for p in players[player_id:] + players[:player_id]
+        ]
 
         return state
 
@@ -167,13 +179,9 @@ class YanivRound(object):
         self.dealer.deck.extend((card for d in self.discard_pile for card in d))
         self.dealer.shuffle()
         self.discard_pile = top_discard
-
-        # end the game if repalce deck is required with everyone losing
-        self.winner = -1
-        self.is_over = True
+        self.deck_replacements += 1
 
 
-        
     def flip_top_card(self):
         self.discard_pile.append([self.dealer.draw_card()])
 
@@ -193,7 +201,6 @@ class YanivRound(object):
         players[self.current_player].hand.append(card)
 
         # TODO deal with itsbah
-
 
     def _perform_pickup_up_top_card_action(self, players):
         self._pickup_card_from_discard_pile(players, top=True)
@@ -230,6 +237,7 @@ class YanivRound(object):
                 if i != self.current_player
             )
         ):
+            print("assaf!!")
             scores[self.current_player] += utils.ASSAF_PENALTY
 
             # the winner is the player with the lowest score closest
