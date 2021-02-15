@@ -10,6 +10,7 @@ from rlcard.utils import set_global_seed
 from rlcard.utils import Logger
 from rlcard.games.yaniv.utils import tournament
 
+
 def main():
     config = {
         "end_after_n_deck_replacements": 0,
@@ -20,11 +21,11 @@ def main():
 
     # Make environment
     env = rlcard.make("yaniv", config=config)
-    eval_env = rlcard.make("yaniv", config={**config, 'env_num': 2})
+    eval_env = rlcard.make("yaniv", config={**config, "env_num": 2})
 
     # Set the iterations numbers and how frequently we evaluate/save plot
     evaluate_every = 10
-    # save_every = 100
+    save_every = 1000
     evaluate_num = 1000
     episode_num = 100000
 
@@ -82,6 +83,9 @@ def main():
                 )
 
             logger.log_performance(env.timestep, payoffs[0])
+
+        if episode % save_every == 0:
+            torch.save(agent.get_state_dict(), os.path.join(model_dir, "model.pth"))
 
     # Close files in the logger
     logger.close_files()
