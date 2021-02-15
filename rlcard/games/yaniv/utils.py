@@ -1,5 +1,6 @@
 import os
 import json
+from rlcard.envs.vec_env import VecEnv
 import numpy as np
 from collections import OrderedDict
 from copy import copy
@@ -89,6 +90,7 @@ def make_card_from_card_id(card_id: int) -> YanivCard:
     suit = YanivCard.suits[suit_id]
     return YanivCard(rank=rank, suit=suit)
 
+
 def make_card_from_str(card: str) -> YanivCard:
     """Make a card from its string repr
 
@@ -99,8 +101,9 @@ def make_card_from_str(card: str) -> YanivCard:
         raise ValueError("Card `{}` should be of lenght 2".format(card))
     suit = card[0]
     rank = card[1]
-          
+
     return YanivCard(rank=rank, suit=suit)
+
 
 def decode_cards(env_cards: np.ndarray) -> List[YanivCard]:
     result = []  # type: List[YanivCard]
@@ -130,14 +133,19 @@ def score_discard_action(action: str) -> int:
 
     return sum(map(methodcaller("get_score"), cards))
 
+
 def tournament(env, num):
-    """ Evaluate he performance of the agents in the environment
+    """Evaluate he performance of the agents in the environment
     Args:
         env (Env class): The environment to be evaluated.
         num (int): The number of games to play.
     Returns:
         A list of average payoffs for each player
     """
+
+    # vec env class
+    vec_env = isinstance(env, VecEnv)
+
     payoffs = np.zeros(env.player_num, dtype=float)
     wins = np.zeros(env.player_num, dtype=int)
     draws = 0
@@ -145,31 +153,29 @@ def tournament(env, num):
     roundlen = 0
     while counter < num:
         _, _payoffs = env.run(is_training=False)
-        if isinstance(_payoffs, list):
+        if vec_env:
             for _p in _payoffs:
                 for i, _ in enumerate(payoffs):
                     payoffs[i] += _p[i]
+
+                if max(_p) == 1:
+                    wins[np.argmax(_p)] += 1
+                else:
+                    draws += 1
                 counter += 1
-            
-            if max(_p) == 1:
-                wins[np.argmax(_p)] += 1
-            else:
-                draws += 1
         else:
             for i, _ in enumerate(payoffs):
                 payoffs[i] += _payoffs[i]
-            counter += 1
-                
+
             if max(_payoffs) == 1:
                 wins[np.argmax(_payoffs)] += 1
             else:
                 draws += 1
-        
+
             roundlen += len(env.game.actions)
 
-        # print(len(env.game.actions))
-        # print(env.game.actions)
-        
+            counter += 1
+
     for i, _ in enumerate(payoffs):
         payoffs[i] /= counter
 
