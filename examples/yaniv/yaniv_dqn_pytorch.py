@@ -24,7 +24,7 @@ def main():
     eval_env = rlcard.make("yaniv", config={**config, "env_num": 2})
 
     # Set the iterations numbers and how frequently we evaluate/save plot
-    evaluate_every = 10
+    evaluate_every = 100
     save_every = 1000
     evaluate_num = 1000
     episode_num = 100000
