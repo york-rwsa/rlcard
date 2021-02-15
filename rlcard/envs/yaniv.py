@@ -76,7 +76,8 @@ class YanivEnv(Env):
         if action_id in legal_ids:
             return utils.ACTION_LIST[action_id]
         else:
-            raise Exception("decode_action: unknown action_id={}".format(action_id))
+            print("Tried non legal action", action_id, utils.ACTION_LIST[action_id], legal_ids, [utils.ACTION_LIST[a] for a in legal_ids])
+            return utils.ACTION_LIST[np.random.choice(legal_ids)]
 
     def _get_legal_actions(self):
         legal_actions = self.game.get_legal_actions()
