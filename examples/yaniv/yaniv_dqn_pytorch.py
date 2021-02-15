@@ -1,13 +1,14 @@
-''' An example of learning a Deep-Q Agent on Leduc Holdem
-'''
+""" An example of learning a Deep-Q Agent on yaniv
+"""
 import torch
 import os
 
 import rlcard
-from rlcard.agents import NFSPAgentPytorch as NFSPAgent
+from rlcard.agents import DQNAgentPytorch as DQNAgent
 from rlcard.agents import RandomAgent
-from rlcard.utils import set_global_seed, tournament
+from rlcard.utils import set_global_seed
 from rlcard.utils import Logger
+from rlcard.games.yaniv.utils import tournament
 
 config = {
     "end_after_n_deck_replacements": 0,
@@ -20,69 +21,53 @@ config = {
 env = rlcard.make("yaniv", config=config)
 eval_env = rlcard.make("yaniv", config=config)
 
-
 # Set the iterations numbers and how frequently we evaluate/save plot
 evaluate_every = 100
 save_every = 100
-evaluate_num = 100  # mahjong has 1000
-episode_num = 1000  # mahjong has 100000
+evaluate_num = 1000
+episode_num = 100000
 
-# The initial memory size
+# The intial memory size
 memory_init_size = 1000
 
 # Train the agent every X steps
-train_every = 64
+train_every = 1
 
-# Set a global seed
-set_global_seed(0)
-save_dir = "yaniv_nfsp"
+# The paths for saving the logs and learning curves
+save_dir = "yaniv_dqn"
 log_dir = os.path.join(save_dir, "logs/")
 model_dir = os.path.join(save_dir, "model/")
-
 if not os.path.exists(model_dir):
     os.makedirs(model_dir)
 
-agents = []
-for i in range(env.player_num):
-    agent = NFSPAgent(
-        sess,
-        scope="nfsp" + str(i),
-        action_num=env.action_num,
-        state_shape=env.state_shape,
-        hidden_layers_sizes=[512, 1024, 2048, 1024, 512],
-        anticipatory_param=0.5,
-        batch_size=256,
-        rl_learning_rate=0.00005,
-        sl_learning_rate=0.00001,
-        min_buffer_size_to_learn=memory_init_size,
-        q_replay_memory_size=int(1e5),
-        q_replay_memory_init_size=memory_init_size,
-        train_every=train_every,
-        q_train_every=train_every,
-        q_batch_size=256,
-        q_mlp_layers=[512, 1024, 2048, 1024, 512],
-    )
-    agents.append(agent)
+# Set a global seed
+set_global_seed(0)
+
+agent = DQNAgent(
+    scope="dqn",
+    action_num=env.action_num,
+    replay_memory_init_size=memory_init_size,
+    train_every=train_every,
+    state_shape=env.state_shape,
+    mlp_layers=[512, 512],
+    device=torch.device("cpu"),
+)
 random_agent = RandomAgent(action_num=eval_env.action_num)
-env.set_agents(agents)
-eval_env.set_agents([agents[0], random_agent])
+env.set_agents([agent, random_agent])
+eval_env.set_agents([agent, random_agent])
 
 # Init a Logger to plot the learning curve
 logger = Logger(log_dir)
 
 for episode in range(episode_num):
-    # First sample a policy for the episode
-    for agent in agents:
-        agent.sample_episode_policy()
-
     # Generate data from the environment
     trajectories, _ = env.run(is_training=True)
 
     # Feed transitions into agent memory, and train the agent
-    for i in range(env.player_num):
-        for ts in trajectories[i]:
-            agents[i].feed(ts)
+    for ts in trajectories[0]:
+        agent.feed(ts)
 
+    # Evaluate the performance. Play with random agents.
     if episode % evaluate_every == 0:
         payoffs, wins, draws, roundlen = tournament(eval_env, evaluate_num)
 
@@ -101,12 +86,9 @@ for episode in range(episode_num):
 logger.close_files()
 
 # Plot the learning curve
-logger.plot("NFSP")
+logger.plot("DQN")
 
 # Save model
-if not os.path.exists(model_dir):
-    os.makedirs(model_dir)
 state_dict = agent.get_state_dict()
-print(state_dict. keys())
-torch.save(state_dict, os.path.join(model_dir, 'model.pth'))
-
+print(state_dict.keys())
+torch.save(state_dict, os.path.join(model_dir, "model.pth"))
