@@ -179,7 +179,10 @@ def tournament(env, num):
 
                 counter += 1
             
-            bar.update(counter)
+            if counter > num:
+                bar.update(num)
+            else:
+                bar.update(counter)
 
     for i, _ in enumerate(payoffs):
         payoffs[i] /= counter
