@@ -10,7 +10,7 @@ from rlcard.utils import set_global_seed
 from rlcard.utils import Logger
 from rlcard.games.yaniv.utils import tournament
 
-import datetime
+from datetime import datetime
 
 
 def main():

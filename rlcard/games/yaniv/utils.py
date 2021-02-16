@@ -3,11 +3,11 @@ import json
 from rlcard.envs.vec_env import VecEnv
 import numpy as np
 from collections import OrderedDict
-from copy import copy
 from rlcard.games.yaniv.card import YanivCard
 import rlcard
 from typing import List
 from operator import methodcaller
+import progressbar
 
 ASSAF_PENALTY = 30
 INITIAL_NUMBER_OF_CARDS = 5
@@ -151,30 +151,35 @@ def tournament(env, num):
     draws = 0
     counter = 0
     roundlen = 0
-    while counter < num:
-        _, _payoffs = env.run(is_training=False)
-        if vec_env:
-            for _p in _payoffs:
-                for i, _ in enumerate(payoffs):
-                    payoffs[i] += _p[i]
+    
+    print("Tournament!")
+    with progressbar.ProgressBar(max_value=num) as bar:
+        while counter < num:
+            _, _payoffs = env.run(is_training=False)
+            if vec_env:
+                for _p in _payoffs:
+                    for i, _ in enumerate(payoffs):
+                        payoffs[i] += _p[i]
 
-                if max(_p) == 1:
-                    wins[np.argmax(_p)] += 1
+                    if max(_p) == 1:
+                        wins[np.argmax(_p)] += 1
+                    else:
+                        draws += 1
+                    counter += 1
+            else:
+                for i, _ in enumerate(payoffs):
+                    payoffs[i] += _payoffs[i]
+
+                if max(_payoffs) == 1:
+                    wins[np.argmax(_payoffs)] += 1
                 else:
                     draws += 1
+
+                roundlen += len(env.game.actions)
+
                 counter += 1
-        else:
-            for i, _ in enumerate(payoffs):
-                payoffs[i] += _payoffs[i]
-
-            if max(_payoffs) == 1:
-                wins[np.argmax(_payoffs)] += 1
-            else:
-                draws += 1
-
-            roundlen += len(env.game.actions)
-
-            counter += 1
+            
+            bar.update(counter)
 
     for i, _ in enumerate(payoffs):
         payoffs[i] /= counter
