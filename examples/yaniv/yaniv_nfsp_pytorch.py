@@ -10,6 +10,8 @@ from rlcard.utils import set_global_seed
 from rlcard.utils import Logger
 from rlcard.games.yaniv.utils import tournament
 
+import datetime
+
 
 def main():
     config = {
@@ -37,7 +39,7 @@ def main():
 
     # Set a global seed
     set_global_seed(0)
-    save_dir = "yaniv_nfsp"
+    save_dir = "yaniv_nfsp/{}".format(datetime.now().strftime("%Y%m%d"))
     log_dir = os.path.join(save_dir, "logs/")
     model_dir = os.path.join(save_dir, "model/")
 

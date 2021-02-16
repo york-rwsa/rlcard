@@ -9,6 +9,7 @@ from rlcard.agents import RandomAgent
 from rlcard.utils import set_global_seed
 from rlcard.utils import Logger
 from rlcard.games.yaniv.utils import tournament
+import datetime
 
 
 def main():
@@ -36,7 +37,7 @@ def main():
     train_every = 1
 
     # The paths for saving the logs and learning curves
-    save_dir = "yaniv_dqn"
+    save_dir = "yaniv_dqn/{}".format(datetime.now().strftime("%Y%m%d"))
     log_dir = os.path.join(save_dir, "logs/")
     model_dir = os.path.join(save_dir, "model/")
     if not os.path.exists(model_dir):
@@ -60,6 +61,8 @@ def main():
 
     # Init a Logger to plot the learning curve
     logger = Logger(log_dir)
+    logger.log("CONFIG: ")
+    logger.log(str(config))
 
     for episode in range(episode_num):
         # Generate data from the environment
