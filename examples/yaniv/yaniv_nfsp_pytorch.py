@@ -8,9 +8,11 @@ from rlcard.agents import NFSPAgentPytorch as NFSPAgent
 from rlcard.agents import RandomAgent
 from rlcard.utils import set_global_seed
 from rlcard.utils import Logger
-from rlcard.games.yaniv.utils import tournament
+from rlcard.games.yaniv.utils import tournament, redirect_to_tqdm
 
+from tqdm import trange
 from datetime import datetime
+import sys
 
 
 def main():
@@ -73,8 +75,10 @@ def main():
 
     # Init a Logger to plot the learning curve
     logger = Logger(log_dir)
+    logger.log("CONFIG: ")
+    logger.log(str(config))
 
-    for episode in range(episode_num):
+    for episode in trange(episode_num, desc="Episodes", file=sys.stdout):
         # First sample a policy for the episode
         for agent in agents:
             agent.sample_episode_policy()
@@ -116,4 +120,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    with redirect_to_tqdm():
+        main()

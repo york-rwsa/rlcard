@@ -7,7 +7,7 @@ from rlcard.games.yaniv.card import YanivCard
 import rlcard
 from typing import List
 from operator import methodcaller
-import progressbar
+from tqdm import tqdm
 
 ASSAF_PENALTY = 30
 INITIAL_NUMBER_OF_CARDS = 5
@@ -151,9 +151,8 @@ def tournament(env, num):
     draws = 0
     counter = 0
     roundlen = 0
-    
-    print("Tournament!")
-    with progressbar.ProgressBar(max_value=num) as bar:
+
+    with tqdm(total=num, desc="Tournament: ") as bar:
         while counter < num:
             _, _payoffs = env.run(is_training=False)
             if vec_env:
@@ -178,14 +177,38 @@ def tournament(env, num):
                 roundlen += len(env.game.actions)
 
                 counter += 1
-            
+
             if counter > num:
-                bar.update(num)
+                bar.update(num - bar.n)
             else:
-                bar.update(counter)
+                bar.update(counter - bar.n)
 
     for i, _ in enumerate(payoffs):
         payoffs[i] /= counter
 
     roundlen /= counter
     return payoffs, wins, draws, roundlen
+
+
+import inspect
+import contextlib
+
+
+@contextlib.contextmanager
+def redirect_to_tqdm():
+    # Store builtin print
+    old_print = print
+
+    def new_print(*args, **kwargs):
+        # If tqdm.tqdm.write raises error, use builtin print
+        try:
+            tqdm.write(*args, **kwargs)
+        except:
+            old_print(*args, **kwargs)
+
+    try:
+        # Globaly replace print with new_print
+        inspect.builtins.print = new_print
+        yield
+    finally:
+        inspect.builtins.print = old_print

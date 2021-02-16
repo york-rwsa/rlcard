@@ -2,14 +2,16 @@
 """
 import torch
 import os
+import sys
 
 import rlcard
 from rlcard.agents import DQNAgentPytorch as DQNAgent
 from rlcard.agents import RandomAgent
 from rlcard.utils import set_global_seed
 from rlcard.utils import Logger
-from rlcard.games.yaniv.utils import tournament
+from rlcard.games.yaniv.utils import tournament, redirect_to_tqdm
 from datetime import datetime
+from tqdm import trange
 
 
 def main():
@@ -64,7 +66,7 @@ def main():
     logger.log("CONFIG: ")
     logger.log(str(config))
 
-    for episode in range(episode_num):
+    for episode in trange(episode_num, desc="Episodes", file=sys.stdout):
         # Generate data from the environment
         trajectories, _ = env.run(is_training=True)
 
@@ -103,4 +105,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    with redirect_to_tqdm():
+        main()
