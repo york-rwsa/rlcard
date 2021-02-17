@@ -8,7 +8,8 @@ DEFAULT_GAME_CONFIG = {
     # zero otherwise
     'end_after_n_steps': 100,
     'early_end_reward': -1,
-    'use_scaled_negative_reward': True
+    'use_scaled_negative_reward': True,
+    'max_negative_reward': -1
 }
 
 

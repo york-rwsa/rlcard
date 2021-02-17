@@ -64,6 +64,7 @@ class YanivGame(object):
         self._end_after_n_steps = config["end_after_n_steps"]
         self._early_end_reward = config["early_end_reward"]
         self._use_scaled_negative_reward = config["use_scaled_negative_reward"]
+        self._max_negative_reward = config["max_negative_reward"]
 
     def step(self, action):
         """Get the next state
@@ -145,7 +146,7 @@ class YanivGame(object):
                 if score == 0:
                     payoff = 1
                 else:
-                    payoff = -(score / 50)
+                    payoff = self._max_negative_reward * (score / 50)
 
                 self.payoffs.append(payoff)
         else:
@@ -153,7 +154,7 @@ class YanivGame(object):
                 if score == 0:
                     payoff = 1
                 else:
-                    payoff = -1
+                    payoff = self._max_negative_reward
 
                 self.payoffs.append(payoff)
 
