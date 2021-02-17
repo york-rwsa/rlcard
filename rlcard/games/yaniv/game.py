@@ -46,6 +46,7 @@ class YanivGame(object):
             self.dealer,
             self.num_players,
             self.np_random,
+            starting_player=self.np_random.randint(0, self.num_players),
         )
         self.round.flip_top_card()
 
@@ -59,11 +60,10 @@ class YanivGame(object):
 
     def configure(self, config):
         """Specifiy some game specific parameters, such as player number"""
-        self._end_after_n_deck_replacements = config[
-            "end_after_n_deck_replacements"
-        ]
+        self._end_after_n_deck_replacements = config["end_after_n_deck_replacements"]
         self._end_after_n_steps = config["end_after_n_steps"]
         self._early_end_reward = config["early_end_reward"]
+        self._use_scaled_negative_reward = config["use_scaled_negative_reward"]
 
     def step(self, action):
         """Get the next state
@@ -140,12 +140,20 @@ class YanivGame(object):
         self.payoffs = []
         if self.round.winner == -1:
             self.payoffs = [self._early_end_reward for _ in range(self.num_players)]
-        else:
+        elif self._use_scaled_negative_reward:
             for score in self.round.scores:
                 if score == 0:
                     payoff = 1
                 else:
                     payoff = -(score / 50)
+
+                self.payoffs.append(payoff)
+        else:
+            for score in self.round.scores:
+                if score == 0:
+                    payoff = 1
+                else:
+                    payoff = -1
 
                 self.payoffs.append(payoff)
 

@@ -19,7 +19,8 @@ def main():
     config = {
         "end_after_n_deck_replacements": 0,
         "end_after_n_steps": 100,
-        "early_end_reward": -1,
+        "early_end_reward": 0,
+        "use_scaled_negative_reward": False,
         "seed": 0,
     }
 
@@ -41,7 +42,7 @@ def main():
 
     # Set a global seed
     set_global_seed(0)
-    save_dir = "yaniv_nfsp/{}".format(datetime.now().strftime("%Y%m%d"))
+    save_dir = "yaniv_nfsp/{}".format(datetime.now().strftime("%Y%m%d_%H%M"))
     log_dir = os.path.join(save_dir, "logs/")
     model_dir = os.path.join(save_dir, "model/")
 

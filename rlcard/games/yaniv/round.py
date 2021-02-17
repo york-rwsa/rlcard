@@ -14,7 +14,7 @@ class YanivRound(object):
         dealer: YanivDealer,
         num_players,
         np_random,
-        end_after_n_deck_replacements=0,
+        starting_player=0,
     ):
         """Initialize the round class
 
@@ -24,7 +24,7 @@ class YanivRound(object):
         """
         self.np_random = np_random
         self.dealer = dealer
-        self.current_player = 0
+        self.current_player = starting_player
         self.num_players = num_players
         self.discard_pile = []  # List[List[Card]]
 
